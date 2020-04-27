@@ -1,67 +1,36 @@
-webhookUrl = 'https:///';
-    $this->token = '4b67069bfd27d211-2a1f1e8d9dd2e232-4c86d8a13012654c';
-    $this->name = 'metyuriti';
-    $this->avatar = 'https:///path/to/avatar.png';
+const ViberBot = require('viber-bot').Bot,
+  BotEvents = require('viber-bot').Events,
+  TextMessage = require('viber-bot').Message.Text,
+  express = require('express');
+const app = express();
 
-    public function action_setup()
-    {
-        $this->webhookUrl .= 'viber/bot';
-
-        try {
-            $client = new Client([ 'token' => $this->token ]);
-            $result = $client->setWebhook($this->webhookUrl);
-            echo 'Success!';
-        } catch (Exception $e) {
-            echo $e->getMessage();
-        }
-    }
-    
-    public function action_bot() {
-
-        $botSender = new Sender([
-            'name' => $this->name,
-            'avatar' => $this->avatar,
-        ]);
-
-        try {
-            $bot = new Bot(['token' => $this->token]);
-            $bot->onSubscribe(function ($event) use ($bot, $botSender) {
-                // Пользователь подписался на чат
-                $receiverId = $event->getSender()->getId();
-                $bot->getClient()->sendMessage(
-                    (new \Viber\Api\Message\Text())
-                        ->setSender($botSender)
-                        ->setReceiver($receiverId)
-                        ->setText('Thank you for subscribe!');
-                );
-            })
-            ->onConversation(function ($event) use ($bot, $botSender) {
-                // Пользователь вошел в чат
-                // Разрешается написать только одно сообщение
-                $receiverId = $event->getSender()->getId();
-                $bot->getClient()->sendMessage(
-                    (new \Viber\Api\Message\Text())
-                        ->setSender($botSender)
-                        ->setReceiver($receiverId)
-                        ->setText('Welcome!');
-                );
-            })
-            ->onText('|Hello|si', function ($event) use ($bot, $botSender) {
-                // Напечатали 'Hello'
-                $receiverId = $event->getSender()->getId();
-                $user = $event->getSender()->getName();
-                $answer = 'Hello, ' . $user;
-                
-                $bot->getClient()->sendMessage(
-                    (new \Viber\Api\Message\Text())
-                        ->setSender($botSender)
-                        ->setReceiver($receiverId)
-                        ->setText($answer);
-                );
-            })
-            ->run();
-        } catch (Exception $e) {
-            Log::instance()->add(Log::ERROR, $e->getMessage());
-        }
-    }
+if (!process.env.4b67069bfd27d211-2a1f1e8d9dd2e232-4c86d8a13012654c) {
+  console.log('Could not find bot account token key.');
+  return;
 }
+if (!process.env.EXPOSE_URL) {
+  console.log('Could not find exposing url');
+  return;
+}
+
+const bot = new ViberBot({
+  authToken: process.env.4b67069bfd27d211-2a1f1e8d9dd2e232-4c86d8a13012654c,
+  name: "Cat Vet Bot",
+  avatar: "https://upload.wikimedia.org/wikipedia/commons/3/3d/Katze_weiss.png"
+});
+bot.on(BotEvents.SUBSCRIBED, response => {
+  response.send(new TextMessage(`Hi there ${response.userProfile.name}. I am ${bot.name}! Feel free to ask me anything.`));
+});
+bot.on(BotEvents.MESSAGE_RECEIVED, (message, response) => {
+  response.send(new TextMessage(`Message received.`));
+});
+const port = process.env.PORT || 3000;
+app.use("/viber/webhook", bot.middleware());
+app.listen(port, () => {
+  console.log(`Application running on port: ${port}`);
+  bot.setWebhook(`${process.env.EXPOSE_URL}/viber/webhook`).catch(error => {
+    console.log('Can not set webhook on following server. Is it running?');
+    console.error(error);
+    process.exit(1);
+  });
+});

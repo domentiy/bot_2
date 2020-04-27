@@ -4,7 +4,7 @@ const ViberBot = require('viber-bot').Bot,
   express = require('express');
 const app = express();
 
-if (!process.env.4b67069bfd27d211-2a1f1e8d9dd2e232-4c86d8a13012654c) {
+if (!process.env.BOT_ACCOUNT_TOKEN) {
   console.log('Could not find bot account token key.');
   return;
 }
@@ -14,7 +14,7 @@ if (!process.env.EXPOSE_URL) {
 }
 
 const bot = new ViberBot({
-  authToken: process.env.4b67069bfd27d211-2a1f1e8d9dd2e232-4c86d8a13012654c,
+  authToken: process.env.BOT_ACCOUNT_TOKEN,
   name: "Cat Vet Bot",
   avatar: "https://upload.wikimedia.org/wikipedia/commons/3/3d/Katze_weiss.png"
 });
